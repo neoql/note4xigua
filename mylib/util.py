@@ -4,7 +4,7 @@ import numpy as np
 def cross_val_split(X, y, k=10):
     m = len(X)
 
-    if k < m:
+    if m < k:
         raise Exception("k < len(X)")
     n = m // k
     for i in range(k):

@@ -5,28 +5,30 @@ class LogisticRegression(object):
     def __init__(self):
         self.__beta = None
 
-    def fit(self, X, y):
-        dl = LogisticRegression.__dl
-        d2l = LogisticRegression.__d2l
-
+    def fit(self, X, y, epsilon=0.001, step_zoom=1):
         d = X.shape[1]  # number of attributes
-        epsilon = 0.001  # error range
 
         beta = np.random.rand(d + 1)
         X = np.concatenate((X, np.ones((len(X), 1))), axis=1)
 
+        i = 0
         while True:
-            g = dl(X, y, beta)
-            if np.linalg.norm(g) < epsilon:
+            mul = np.dot(X, beta)
+            p = np.exp(mul) / (1 + np.exp(mul))
+            g = -np.dot(X.T, y - p)
+            if np.linalg.norm(g) < epsilon or i > 65535:
                 break
-            G = d2l(X, y, beta)
-            beta = beta - np.dot(np.linalg.inv(G), g)
+            G = np.dot(X.T, (p * (1-p)).reshape((len(p), 1)) * X)
+            try:
+                beta = beta - np.dot(np.linalg.inv(G), g) * step_zoom
+            except:
+                beta = beta - np.dot(np.linalg.pinv(G), g) * step_zoom
+            i += 1
 
         self.__beta = beta
 
     def predict(self, x):
-        np.append(x, 1)
-        return self.__p1(x, self.beta) > 0.5
+        return self.__p1(np.append(x, 1), self.beta) > 0.5
 
     @property
     def beta(self):
@@ -39,23 +41,6 @@ class LogisticRegression(object):
     def __p1(x, beta):
         t = np.exp(np.dot(beta.T, x))
         return t / (1 + t)
-
-    @staticmethod
-    def __dl(X, y, beta):
-        m = len(X)
-        sm = 0
-        for i in range(m):
-            sm += X[i] * (y[i] - LogisticRegression.__p1(X[i], beta))
-        return -sm
-
-    @staticmethod
-    def __d2l(X, y, beta):
-        m = len(X)
-        sm = 0
-        for i in range(m):
-            x_i = X[i].reshape((3, 1))
-            sm += np.dot(x_i, x_i.T) * LogisticRegression.__p1(X[i], beta) * (1 - LogisticRegression.__p1(X[i], beta))
-        return sm
 
 
 class NotTrainException(Exception):

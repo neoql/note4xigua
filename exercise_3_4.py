@@ -51,9 +51,9 @@ def iris():
         y2 = np.concatenate((np.ones((len(cls2_X),)), np.zeros((len(cls3_X),))))
         y3 = np.concatenate((np.ones((len(cls3_X),)), np.zeros((len(cls1_X),))))
 
-        setosa_versicolor_model.fit(X1, y1, step_zoom=0.001)
-        versicolor_virginica_model.fit(X2, y2, step_zoom=0.001)
-        virginica_setosa_model.fit(X3, y3, step_zoom=0.001)
+        setosa_versicolor_model.fit(X1, y1, step_size=0.001)
+        versicolor_virginica_model.fit(X2, y2, step_size=0.001)
+        virginica_setosa_model.fit(X3, y3, step_size=0.001)
 
         # test
         n = 0
@@ -79,12 +79,71 @@ def iris():
             if cls != test_y[i]:
                 n += 1
         rate[k] = n / len(test_y)
+        print(n, len(test_y))
         k += 1
     print(sum(rate) / 10)
 
 
 def wine():
+    np.seterr(over='ignore', invalid='ignore')
+
+    # load dataset
     dataset = np.loadtxt('./dataset/wine.data.csv', delimiter=",")
+    np.random.shuffle(dataset)
+    X = dataset[:, 1:]
+    y = dataset[:, 0]
+
+    rate = [0] * 10
+    k = 0
+    for train_X, train_y, test_X, test_y in cross_val_split(X, y, k=10):
+        # train
+        cls1_X = train_X[train_y == 1]
+        cls2_X = train_X[train_y == 2]
+        cls3_X = train_X[train_y == 3]
+
+        model_1_2 = LogisticRegression()
+        model_2_3 = LogisticRegression()
+        model_3_1 = LogisticRegression()
+
+        X1 = np.concatenate((cls1_X, cls2_X))
+        X2 = np.concatenate((cls2_X, cls3_X))
+        X3 = np.concatenate((cls3_X, cls1_X))
+
+        y1 = np.concatenate((np.ones((len(cls1_X),)), np.zeros((len(cls2_X),))))
+        y2 = np.concatenate((np.ones((len(cls2_X),)), np.zeros((len(cls3_X),))))
+        y3 = np.concatenate((np.ones((len(cls3_X),)), np.zeros((len(cls1_X),))))
+
+        model_1_2.fit(X1, y1, step_size=0.001)
+        model_2_3.fit(X2, y2, step_size=0.001)
+        model_3_1.fit(X3, y3, step_size=0.001)
+
+        # test
+        n = 0
+        for i, x in enumerate(test_X):
+            vote = [0, 0, 0]
+
+            if model_1_2.predict(x):
+                vote[0] += 1
+            else:
+                vote[1] += 1
+
+            if model_2_3.predict(x):
+                vote[1] += 1
+            else:
+                vote[2] += 1
+
+            if model_3_1.predict(x):
+                vote[2] += 1
+            else:
+                vote[0] += 1
+
+            cls = vote.index(max(vote)) + 1
+            if cls != test_y[i]:
+                n += 1
+        rate[k] = n / len(test_y)
+        print(n, len(test_y))
+        k += 1
+    print(sum(rate) / 10)
 
 
 def main():

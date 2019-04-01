@@ -7,6 +7,8 @@ def cross_val_split(X, y, k=10):
     if m < k:
         raise Exception("k < len(X)")
     n = m // k
+    if m % k:
+        n += 1
     for i in range(k):
         if i == 0:
             train_X = X[n:]

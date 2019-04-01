@@ -10,6 +10,7 @@ from mylib.linear_model import LogisticRegression
 
 def iris():
     np.seterr(over='ignore', invalid='ignore')
+    print('在iris.data上验证：')
 
     m = 150
     dataset = np.zeros((m, 5))
@@ -34,6 +35,7 @@ def iris():
     rate = [0] * 10
     k = 0
     for train_X, train_y, test_X, test_y in cross_val_split(X, y, k=10):
+        print('10折交叉验证，第{}轮'.format(k + 1))
         # train
         cls1_X = train_X[train_y == 1]
         cls2_X = train_X[train_y == 2]
@@ -51,9 +53,9 @@ def iris():
         y2 = np.concatenate((np.ones((len(cls2_X),)), np.zeros((len(cls3_X),))))
         y3 = np.concatenate((np.ones((len(cls3_X),)), np.zeros((len(cls1_X),))))
 
-        setosa_versicolor_model.fit(X1, y1, step_size=0.001)
-        versicolor_virginica_model.fit(X2, y2, step_size=0.001)
-        virginica_setosa_model.fit(X3, y3, step_size=0.001)
+        setosa_versicolor_model.fit(X1, y1)
+        versicolor_virginica_model.fit(X2, y2)
+        virginica_setosa_model.fit(X3, y3)
 
         # test
         n = 0
@@ -79,13 +81,14 @@ def iris():
             if cls != test_y[i]:
                 n += 1
         rate[k] = n / len(test_y)
-        print(n, len(test_y))
+        print('错误数量：{}/{}'.format(n, len(test_y)))
         k += 1
-    print(sum(rate) / 10)
+    print('10折交叉验证结束，平均错误率：{:.2f}%'.format(sum(rate) * 10))
 
 
 def wine():
     np.seterr(over='ignore', invalid='ignore')
+    print('在wine.data上验证：')
 
     # load dataset
     dataset = np.loadtxt('./dataset/wine.data.csv', delimiter=",")
@@ -96,6 +99,7 @@ def wine():
     rate = [0] * 10
     k = 0
     for train_X, train_y, test_X, test_y in cross_val_split(X, y, k=10):
+        print('10折交叉验证，第{}轮'.format(k + 1))
         # train
         cls1_X = train_X[train_y == 1]
         cls2_X = train_X[train_y == 2]
@@ -113,9 +117,9 @@ def wine():
         y2 = np.concatenate((np.ones((len(cls2_X),)), np.zeros((len(cls3_X),))))
         y3 = np.concatenate((np.ones((len(cls3_X),)), np.zeros((len(cls1_X),))))
 
-        model_1_2.fit(X1, y1, step_size=0.001)
-        model_2_3.fit(X2, y2, step_size=0.001)
-        model_3_1.fit(X3, y3, step_size=0.001)
+        model_1_2.fit(X1, y1)
+        model_2_3.fit(X2, y2)
+        model_3_1.fit(X3, y3)
 
         # test
         n = 0
@@ -141,14 +145,15 @@ def wine():
             if cls != test_y[i]:
                 n += 1
         rate[k] = n / len(test_y)
-        print(n, len(test_y))
+        print('错误数量：{}/{}'.format(n, len(test_y)))
         k += 1
-    print(sum(rate) / 10)
+    print('10折交叉验证结束，平均错误率：{:.2f}%'.format(sum(rate) * 10))
 
 
 def main():
     iris()
-    # wine()
+    print()
+    wine()
 
 
 if __name__ == '__main__':

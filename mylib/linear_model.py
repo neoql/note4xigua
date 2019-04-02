@@ -83,6 +83,68 @@ class LogisticRegression(object):
         return val
 
 
+class LinearDiscriminantAnalysis(object):
+    def __init__(self):
+        self.__w = None
+        self.__mu0 = None
+        self.__mu1 = None
+        self.__mu0_projection = None
+        self.__mu1_projection = None
+
+    def fit(self, X, y):
+        X0 = X[y == 0]
+        X1 = X[y == 1]
+
+        mu0 = np.mean(X0, axis=0)
+        mu1 = np.mean(X1, axis=0)
+
+        cov0 = np.dot((X0 - mu0).T, X0 - mu0)
+        cov1 = np.dot((X1 - mu1).T, X1 - mu1)
+
+        Sw = cov0 + cov1
+
+        w = np.dot(np.linalg.inv(Sw), mu0 - mu1)
+        self.__w = w
+        self.__mu0 = mu0
+        self.__mu1 = mu1
+        self.__mu0_projection = self.projection(mu0)
+        self.__mu1_projection = self.projection(mu1)
+
+    def predict(self, x):
+        projection = self.projection(x)
+
+        positive = self.__mu1_projection
+        negative = self.__mu0_projection
+
+        distance_positive = np.linalg.norm(positive - projection)
+        distance_negative = np.linalg.norm(negative - projection)
+
+        return distance_positive < distance_negative
+
+    def projection(self, point):
+        w = self.w
+
+        x1 = point[0]
+        y1 = point[1]
+
+        k = -1 / (w[1] / w[0])
+        b = y1 - k * x1
+
+        return np.array([-k * b / (k * k + 1), b / (k * k + 1)])
+
+    @property
+    def w(self):
+        return self.__w
+
+    @property
+    def mu_positive(self):
+        return self.__mu1
+
+    @property
+    def mu_negative(self):
+        return self.__mu0
+
+
 class NotTrainException(Exception):
     def __init__(self):
         super().__init__("This learning machine has not been trained yet.")

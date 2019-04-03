@@ -52,7 +52,7 @@ def main():
             plt.scatter(projection[0], projection[1], marker='o', color='g', s=20)
         else:
             plt.scatter(projection[0], projection[1], marker='o', color='k', s=20)
-        plt.plot((x[0], projection[0]), (x[1], projection[1]), 'c--', linewidth=0.3)
+        plt.plot((x[0], projection[0]), (x[1], projection[1]), 'c--', linewidth=0.3, dashes=(10, 10))
 
     mu0 = model.projection(model.mu_negative)
     mu1 = model.projection(model.mu_positive)

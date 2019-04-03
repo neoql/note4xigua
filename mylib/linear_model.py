@@ -123,14 +123,22 @@ class LinearDiscriminantAnalysis(object):
 
     def projection(self, point):
         w = self.w
+        dimension = len(point)
 
-        x1 = point[0]
-        y1 = point[1]
+        a = 0
+        b = 0
+        k = np.zeros((dimension,))
+        for i in range(dimension):
+            k[i] = w[i] / w[0]
+            b += (k[i] * point[i])
+            a += (k[i] ** 2)
 
-        k = -1 / (w[1] / w[0])
-        b = y1 - k * x1
+        x = b / a
+        projection = np.zeros((dimension,))
+        for i in range(dimension):
+            projection[i] = k[i] * x
 
-        return np.array([-k * b / (k * k + 1), b / (k * k + 1)])
+        return projection
 
     @property
     def w(self):

@@ -128,17 +128,20 @@ class DecisionTreeClassifier(object):
 
         return ent
 
-    def graph(self):
+    def graph(self, label_title=None):
         g = graphviz.Dot()
         self.__seq = 0
-        self.__fill_graph(self.__root, None, "", g)
+        self.__fill_graph(self.__root, None, "", g, label_title)
         return g.to_string()
 
-    def __fill_graph(self, node, father, branch, g):
+    def __fill_graph(self, node, father, branch, g, label_title=None):
         if node.attr is None:
-            title = "好瓜：{}".format(node.label)
+            if label_title is not None:
+                title = "{}: {}".format(label_title, node.label)
+            else:
+                title = "{}".format(node.label)
         else:
-            title = "属性：{}".format(node.attr)
+            title = "{}".format(node.attr)
 
         g_node = graphviz.Node(self.__seq, label=title)
         g.add_node(g_node)
@@ -147,7 +150,7 @@ class DecisionTreeClassifier(object):
 
         for val, child in node.branches.items():
             self.__seq += 1
-            self.__fill_graph(child, g_node, val, g)
+            self.__fill_graph(child, g_node, val, g, label_title)
 
 
 class Node(object):
@@ -169,7 +172,7 @@ def main():
     clf = DecisionTreeClassifier()
     clf.fit(features, labels)
 
-    g = graphviz.graph_from_dot_data(clf.graph())
+    g = graphviz.graph_from_dot_data(clf.graph(label_title="好瓜?"))
     g.write_png('tree.png')
 
 

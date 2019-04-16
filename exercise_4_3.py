@@ -1,6 +1,7 @@
 from math import log2
 
 import pandas as pd
+from pydotplus import graphviz
 
 
 class DecisionTreeClassifier(object):
@@ -17,7 +18,7 @@ class DecisionTreeClassifier(object):
         label_count = self.__value_count(labels)
 
         node.label = max(label_count, key=label_count.get)
-        if len(label_count) == 1 or len(labels) == 0:
+        if len(label_count) == 1 or len(features.columns) == 0:
             return node
 
         opt_attr, div_value = self.__optimal_attr(features, labels)
@@ -127,6 +128,27 @@ class DecisionTreeClassifier(object):
 
         return ent
 
+    def graph(self):
+        g = graphviz.Dot()
+        self.__seq = 0
+        self.__fill_graph(self.__root, None, "", g)
+        return g.to_string()
+
+    def __fill_graph(self, node, father, branch, g):
+        if node.attr is None:
+            title = "好瓜：{}".format(node.label)
+        else:
+            title = "属性：{}".format(node.attr)
+
+        g_node = graphviz.Node(self.__seq, label=title)
+        g.add_node(g_node)
+        if father is not None:
+            g.add_edge(graphviz.Edge(father, g_node, label=branch))
+
+        for val, child in node.branches.items():
+            self.__seq += 1
+            self.__fill_graph(child, g_node, val, g)
+
 
 class Node(object):
     def __init__(self, attr=None, label=None, branches=None):
@@ -146,6 +168,9 @@ def main():
 
     clf = DecisionTreeClassifier()
     clf.fit(features, labels)
+
+    g = graphviz.graph_from_dot_data(clf.graph())
+    g.write_png('tree.png')
 
 
 if __name__ == '__main__':
